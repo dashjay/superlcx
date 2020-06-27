@@ -24,7 +24,7 @@ jobs:
       - name: Go Build
         run: |
           make build GOOS=linux ARCH=amd64 TARGET=superlcx_linux_amd64;  \
-          make build GOOS=darwin arch=amd64 TARRGET=superlcx_darwin_amd64; \
+          make build GOOS=darwin arch=amd64 TARGET=superlcx_darwin_amd64; \
           make build GOOS=windows arch=amd64 TARGET=superlcx_windows_amd64.exe;
 
       - name: Get tag

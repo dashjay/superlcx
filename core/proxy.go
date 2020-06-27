@@ -20,6 +20,11 @@ type Proxy struct {
 	respHandlers []func(resp *http.Response)
 }
 
+func (p *Proxy) RegisterMiddleware(reqH func(req *http.Request), respH func(resp *http.Response)) {
+	p.reqHandlers = append(p.reqHandlers, reqH)
+	p.respHandlers = append(p.respHandlers, respH)
+}
+
 // NewSapProxy 构建一个SapProxy
 func NewSapProxy(lis net.Listener, defaultHost string, middleware string) *Proxy {
 	u, err := url.Parse(fmt.Sprintf("http://%s", defaultHost))
@@ -33,42 +38,12 @@ func NewSapProxy(lis net.Listener, defaultHost string, middleware string) *Proxy
 		reqHandlers:  make([]func(req *http.Request), 0),
 		respHandlers: make([]func(resp *http.Response), 0),
 	}
-
-	find := func(pluginName string) (func(req *http.Request), func(resp *http.Response)) {
-		p, err := plugin.Open(pluginName)
-		if err != nil {
-			panic(err)
-		}
-		req, err := p.Lookup("HandleRequest")
-		if err != nil {
-			panic(err)
-		}
-		resp, err := p.Lookup("HandleResponse")
-		if err != nil {
-			panic(err)
-		}
-		return req.(func(req *http.Request)), resp.(func(resp *http.Response))
-	}
-
-	if middleware != "" {
-		ms := strings.Split(middleware, ",")
-		for _, m := range ms {
-			switch m {
-			case "stdout":
-				p.reqHandlers = append(p.reqHandlers, stdout.HandleRequest)
-				p.respHandlers = append(p.respHandlers, stdout.HandleResponse)
-			default:
-				reqH, respH := find(m)
-				p.reqHandlers = append(p.reqHandlers, reqH)
-				p.respHandlers = append(p.respHandlers, respH)
-			}
-		}
-	}
+	p.Register(middleware)
 	return p
 }
 
-func (s *Proxy) director(req *http.Request) {
-	for _, fn := range s.reqHandlers {
+func (p *Proxy) director(req *http.Request) {
+	for _, fn := range p.reqHandlers {
 		fn(req)
 	}
 	if _, ok := req.Header["User-Agent"]; !ok {
@@ -86,7 +61,7 @@ func (s *Proxy) director(req *http.Request) {
 		}
 		return a + b
 	}
-	target := s.defaultUrl
+	target := p.defaultUrl
 	targetQuery := target.RawQuery
 	req.URL.Scheme = target.Scheme
 	req.URL.Host = target.Host
@@ -100,7 +75,7 @@ func (s *Proxy) director(req *http.Request) {
 
 type myTripper struct {
 	http.RoundTripper
-	s *Proxy
+	p *Proxy
 }
 
 func (t *myTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
@@ -111,21 +86,52 @@ func (t *myTripper) RoundTrip(req *http.Request) (resp *http.Response, err error
 		return nil, err
 	}
 
-	for _, fn := range t.s.respHandlers {
+	for _, fn := range t.p.respHandlers {
 		fn(resp)
 	}
 
 	return resp, nil
 }
-func (s *Proxy) modifyResponse(r *http.Response) error {
+func (p *Proxy) modifyResponse(r *http.Response) error {
 	return nil
 }
 
-func (s *Proxy) Serve() {
-	p := &httputil.ReverseProxy{
-		Director:       s.director,
-		Transport:      &myTripper{RoundTripper: http.DefaultTransport, s: s},
-		ModifyResponse: s.modifyResponse,
+func (p *Proxy) Serve() {
+	proxy := &httputil.ReverseProxy{
+		Director:       p.director,
+		Transport:      &myTripper{RoundTripper: http.DefaultTransport, p: p},
+		ModifyResponse: p.modifyResponse,
 	}
-	panic(http.Serve(s.lis, p))
+	panic(http.Serve(p.lis, proxy))
+}
+
+func (p *Proxy) Register(middleware string) {
+	if middleware != "" {
+		ms := strings.Split(middleware, ",")
+		for _, m := range ms {
+			switch m {
+			case "stdout":
+				p.RegisterMiddleware(stdout.HandleRequest, stdout.HandleResponse)
+			default:
+				reqH, respH := find(m)
+				p.RegisterMiddleware(reqH, respH)
+			}
+		}
+	}
+}
+
+func find(pluginName string) (func(req *http.Request), func(resp *http.Response)) {
+	p, err := plugin.Open(pluginName)
+	if err != nil {
+		panic(err)
+	}
+	req, err := p.Lookup("HandleRequest")
+	if err != nil {
+		panic(err)
+	}
+	resp, err := p.Lookup("HandleResponse")
+	if err != nil {
+		panic(err)
+	}
+	return req.(func(req *http.Request)), resp.(func(resp *http.Response))
 }

@@ -5,14 +5,18 @@ port transfer tool with middleware kit
 
 # usage
 ```bash
-~/superlcx(master*) » ./superlcx -h                                                                                              dashjay@zhaowenjies-MacBook-Pro
+~/superlcx(master) » ./superlcx -h                                                                                               dashjay@zhaowenjies-MacBook-Pro
 Usage of ./superlcx:
+  -M string
+        middleware, comma separated if more than one, eg: --M stdout,dumps
   -host string
         target host:port (default "0.0.0.0:8081")
   -l int
         listen port (default 8080)
   -m string
         run mode (default "proxy")
+  -v    show version and about then exit.
+
 ```
 
 ### mode
@@ -26,3 +30,26 @@ Usage of ./superlcx:
     
 - hybrid(ing)
     - (expect)advantages: allocate low memory and expose more API like proxy_pass...etc
+
+### -M middleware
+When working in the proxy mode, middleware can be invoked to analyze the traffic in the process. For example, the built-in stdout middleware (sample middleware) can be used via '-M stdout'.
+(Must be in the proxy mode to work)
+
+If you want to implement your own middleware, check out:
+[Middleware standard](./docs/middleware.md)
+
+Once every thing ok, it can be placed under the middlewares folder. It is disambiguated tha that the file structure remain as follows.
+```
+middlewares
+└── stdout
+    └── handler.go
+```
+
+The interfaces are exposing as follows under 'handler.go'. If you need to load the configuration, load it yourself.(I will then use TOML to pass the configuration)
+```
+func HandleRequest(req *http.Request)
+func HandleResponse(req *http.Response)
+```
+
+**WARNING:** Middleware components may do something on the req and resp body, That's bound to do a lot of io with bufio, the memory jitters can be very serious.
+I thought about writing a center middleware to dump the req and resp out, and then call all middleware like pipeline, but if some of them change the req or resp, it can also cause other problems, so now middleware components do not affect each other.

@@ -13,7 +13,6 @@ type SapCopy struct {
 }
 
 func (s *SapCopy) Serve() {
-
 	for {
 		conn, err := s.lis.Accept()
 		if err != nil {
@@ -33,7 +32,6 @@ func (s *SapCopy) Serve() {
 				io.Copy(conn2, conn)
 				wg.Done()
 			}()
-
 			go func() {
 				io.Copy(conn, conn2)
 				wg.Done()
