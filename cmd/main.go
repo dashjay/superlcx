@@ -20,9 +20,11 @@ import (
 const version = "1.0.0"
 
 var (
-	listenPort int
-	hostPort   string
-	mode       string
+	showVersion bool
+	listenPort  int
+	hostPort    string
+	mode        string
+	middleware  string
 )
 
 func init() {
@@ -33,9 +35,11 @@ func init() {
 			os.Exit(-1)
 		}
 	}()
+	flag.BoolVar(&showVersion, "v", false, "show version and about then exit.")
 	flag.IntVar(&listenPort, "l", 8080, "listen port")
 	flag.StringVar(&hostPort, "host", "0.0.0.0:8081", "target host:port")
 	flag.StringVar(&mode, "m", "proxy", "run mode")
+	flag.StringVar(&middleware, "M", "", "middleware, comma separated if more than one, eg: --M stdout,dumps")
 	flag.Parse()
 	if listenPort < 1 || listenPort > 65535 {
 		panic("[x] Listen Port Invalid")
@@ -44,6 +48,19 @@ func init() {
 }
 
 func main() {
+	if showVersion {
+		fmt.Printf(`
+  _____ _    _ _____  ______ _____  _      _______   __
+ / ____| |  | |  __ \|  ____|  __ \| |    / ____\ \ / /
+| (___ | |  | | |__) | |__  | |__) | |   | |     \ V / 
+ \___ \| |  | |  ___/|  __| |  _  /| |   | |      > <  
+ ____) | |__| | |    | |____| | \ \| |___| |____ / . \ 
+|_____/ \____/|_|    |______|_|  \_\______\_____/_/ \_\
+
+Superlcx [%s], a tool kit for port transfer with middlewares!
+`, version)
+		os.Exit(0)
+	}
 	// Buried point for debug
 	go func() {
 		http.ListenAndServe(":8999", nil)
@@ -58,7 +75,7 @@ func main() {
 	}
 	switch mode {
 	case "proxy":
-		c := core.NewSapProxy(lis, hostPort)
+		c := core.NewSapProxy(lis, hostPort, middleware)
 		c.Serve()
 	case "copy":
 		c := core.NewSapCopy(lis, hostPort)
