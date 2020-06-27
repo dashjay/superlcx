@@ -3,9 +3,11 @@
 GO = go
 SOURCE = cmd/main.go
 TARGET = superlcx
+GOOS = darwin
+ARCH = amd64
 
 build:
-	${GO} build -o ${TARGET} ${SOURCE}
+	GOOS=${GOOS} ARCH=${ARCH} ${GO} build -o ${TARGET} ${SOURCE}
 
 slim:
 	${GO} build -o temp ${SOURCE}
