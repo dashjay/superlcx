@@ -13,6 +13,7 @@ type SapCopy struct {
 }
 
 func (s *SapCopy) Serve() {
+	log.Printf("superlcx work in copy mode!")
 	for {
 		conn, err := s.lis.Accept()
 		if err != nil {

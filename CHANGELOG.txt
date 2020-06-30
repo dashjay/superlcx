@@ -1,1 +1,1 @@
-1. add middleware mode for superlcx
+1. add blendmode.

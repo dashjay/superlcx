@@ -25,6 +25,7 @@ var (
 	hostPort    string
 	mode        string
 	middleware  string
+	logCfg      string
 )
 
 func init() {
@@ -37,9 +38,10 @@ func init() {
 	}()
 	flag.BoolVar(&showVersion, "v", false, "show version and about then exit.")
 	flag.IntVar(&listenPort, "l", 8080, "listen port")
-	flag.StringVar(&hostPort, "host", "0.0.0.0:8081", "target host:port")
-	flag.StringVar(&mode, "m", "proxy", "run mode")
+	flag.StringVar(&hostPort, "host", "0.0.0.0:8081", "target host:port.")
+	flag.StringVar(&mode, "m", "proxy", "run mode <proxy|copy|blend>.")
 	flag.StringVar(&middleware, "M", "", "middleware, comma separated if more than one, eg: --M stdout,dumps")
+	flag.StringVar(&logCfg, "log", "t", "l -> line of code, d -> date, t -> time, order doesn't matter")
 	flag.Parse()
 	if listenPort < 1 || listenPort > 65535 {
 		panic("[x] Listen Port Invalid")
@@ -61,6 +63,19 @@ Superlcx [%s], a tool kit for port transfer with middlewares!
 `, version)
 		os.Exit(0)
 	}
+	logC := strings.Split(logCfg, "")
+	logFlag := log.Ltime
+	for _, c := range logC {
+		switch c {
+		case "d":
+			logFlag |= log.Ldate
+		case "l":
+			logFlag |= log.Lshortfile
+		default:
+			continue
+		}
+	}
+	log.SetFlags(logFlag)
 	// Buried point for debug
 	go func() {
 		http.ListenAndServe(":8999", nil)
@@ -79,6 +94,9 @@ Superlcx [%s], a tool kit for port transfer with middlewares!
 		c.Serve()
 	case "copy":
 		c := core.NewSapCopy(lis, hostPort)
+		c.Serve()
+	case "blend":
+		c := core.NewSapBlend(lis, hostPort, middleware)
 		c.Serve()
 	default:
 		flag.PrintDefaults()

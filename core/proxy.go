@@ -13,69 +13,37 @@ import (
 	"superlcx/middlewares/stdout"
 )
 
-type Proxy struct {
-	defaultUrl   *url.URL
-	lis          net.Listener
-	reqHandlers  []func(req *http.Request)
-	respHandlers []func(resp *http.Response)
-}
-
-func (p *Proxy) RegisterMiddleware(reqH func(req *http.Request), respH func(resp *http.Response)) {
-	p.reqHandlers = append(p.reqHandlers, reqH)
-	p.respHandlers = append(p.respHandlers, respH)
+type SapProxy struct {
+	defaultUrl *url.URL
+	lis        net.Listener
+	middleware
 }
 
 // NewSapProxy 构建一个SapProxy
-func NewSapProxy(lis net.Listener, defaultHost string, middleware string) *Proxy {
+func NewSapProxy(lis net.Listener, defaultHost string, middleware string) *SapProxy {
 	u, err := url.Parse(fmt.Sprintf("http://%s", defaultHost))
 	if err != nil {
 		panic(err)
 	}
 	log.Printf("parse default url as %s", u)
-	p := &Proxy{
-		defaultUrl:   u,
-		lis:          lis,
-		reqHandlers:  make([]func(req *http.Request), 0),
-		respHandlers: make([]func(resp *http.Response), 0),
+	p := &SapProxy{
+		defaultUrl: u,
+		lis:        lis,
 	}
 	p.Register(middleware)
 	return p
 }
 
-func (p *Proxy) director(req *http.Request) {
-	for _, fn := range p.reqHandlers {
+func (s *SapProxy) director(req *http.Request) {
+	organizeUrl(req, s.defaultUrl)
+	for _, fn := range s.reqHandlers {
 		fn(req)
-	}
-	if _, ok := req.Header["User-Agent"]; !ok {
-		// explicitly disable User-Agent so it's not set to default value
-		req.Header.Set("User-Agent", "")
-	}
-	singleJoiningSlash := func(a, b string) string {
-		aslash := strings.HasSuffix(a, "/")
-		bslash := strings.HasPrefix(b, "/")
-		switch {
-		case aslash && bslash:
-			return a + b[1:]
-		case !aslash && !bslash:
-			return a + "/" + b
-		}
-		return a + b
-	}
-	target := p.defaultUrl
-	targetQuery := target.RawQuery
-	req.URL.Scheme = target.Scheme
-	req.URL.Host = target.Host
-	req.URL.Path = singleJoiningSlash(target.Path, req.URL.Path)
-	if targetQuery == "" || req.URL.RawQuery == "" {
-		req.URL.RawQuery = targetQuery + req.URL.RawQuery
-	} else {
-		req.URL.RawQuery = targetQuery + "&" + req.URL.RawQuery
 	}
 }
 
 type myTripper struct {
 	http.RoundTripper
-	p *Proxy
+	p *SapProxy
 }
 
 func (t *myTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
@@ -92,29 +60,30 @@ func (t *myTripper) RoundTrip(req *http.Request) (resp *http.Response, err error
 
 	return resp, nil
 }
-func (p *Proxy) modifyResponse(r *http.Response) error {
+func (s *SapProxy) modifyResponse(r *http.Response) error {
 	return nil
 }
 
-func (p *Proxy) Serve() {
+func (s *SapProxy) Serve() {
+	log.Printf("superlcx work in proxy mode!")
 	proxy := &httputil.ReverseProxy{
-		Director:       p.director,
-		Transport:      &myTripper{RoundTripper: http.DefaultTransport, p: p},
-		ModifyResponse: p.modifyResponse,
+		Director:       s.director,
+		Transport:      &myTripper{RoundTripper: http.DefaultTransport, p: s},
+		ModifyResponse: s.modifyResponse,
 	}
-	panic(http.Serve(p.lis, proxy))
+	panic(http.Serve(s.lis, proxy))
 }
 
-func (p *Proxy) Register(middleware string) {
+func (s *SapProxy) Register(middleware string) {
 	if middleware != "" {
 		ms := strings.Split(middleware, ",")
 		for _, m := range ms {
 			switch m {
 			case "stdout":
-				p.RegisterMiddleware(stdout.HandleRequest, stdout.HandleResponse)
+				s.RegisterMiddleware(stdout.HandleRequest, stdout.HandleResponse)
 			default:
 				reqH, respH := find(m)
-				p.RegisterMiddleware(reqH, respH)
+				s.RegisterMiddleware(reqH, respH)
 			}
 		}
 	}

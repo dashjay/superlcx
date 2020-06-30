@@ -22,14 +22,15 @@ Usage of ./superlcx:
 ### mode
 - proxy 
     - advantages: the proxy mode work with http proxy package which can offer(expose) more api like modifyResponse,Transport,director, etc.
-    - disadvantages: the proxy mode will cause memory mem jitter, not suitable for limited memory machine if you need high performance
+    - disadvantages: the proxy mode will cause memory jitter, not suitable for limited memory machine if you need high performance
 
 - copy
     - advantages: the copy mode directly work on tcp layer, it doesn't care about what would be transfer. With the help of `io.Copy`, it needs less RAM.
     - disadvantages: the copy mode know nothing about application layer. all things it can do is dumping them all out.
     
-- hybrid(ing)
-    - (expect)advantages: allocate low memory and expose more API like proxy_pass...etc
+- blend
+    - advantages: allocate low memory comparing with the proxy mode. it can run with the middleware interface.
+    - disadvantages: the blend mode still need more memory(less than proxy), and could lead to memory jitter.
 
 ### -M middleware
 When working in the proxy mode, middleware can be invoked to analyze the traffic in the process. For example, the built-in stdout middleware (sample middleware) can be used via '-M stdout'.
