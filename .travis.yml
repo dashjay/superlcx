@@ -1,0 +1,14 @@
+# .travis.yml
+language: "go"
+
+dist: "xenial"
+
+os:
+  - "linux"
+go:
+  - "1.13.x"
+  - "1.14.x"
+
+script:
+  - go vet cmd/main.go
+  - go build cmd/main.go

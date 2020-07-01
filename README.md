@@ -1,7 +1,20 @@
+```bash
+  _____ _    _ _____  ______ _____  _      _______   __
+ / ____| |  | |  __ \|  ____|  __ \| |    / ____\ \ / /
+| (___ | |  | | |__) | |__  | |__) | |   | |     \ V / 
+ \___ \| |  | |  ___/|  __| |  _  /| |   | |      > <  
+ ____) | |__| | |    | |____| | \ \| |___| |____ / . \ 
+|_____/ \____/|_|    |______|_|  \_\______\_____/_/ \_\
+```
+<p align="center">
+<a href="https://travis-ci.com/github/dashjay/superlcx"><img src="https://travis-ci.com/dashjay/superlcx.svg?branch=master" alt="Build Status"></a>
+</p>
+
 [EN][中文](./README.CN.md)
 
-# superlcx
-port transfer tool with middleware kit
+# intro
+A high performance proxy tool with a lot rich middleware.
+SuperLcx proxy request and send response back, on the way to do this, use some middleware to handle transferred data to implement some high-level operations.
 
 # usage
 ```bash
