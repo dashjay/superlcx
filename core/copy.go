@@ -5,6 +5,8 @@ import (
 	"log"
 	"net"
 	"sync"
+
+	"superlcx/cc"
 )
 
 type SapCopy struct {
@@ -44,6 +46,6 @@ func (s *SapCopy) Serve() {
 	}
 }
 
-func NewSapCopy(lis net.Listener, target string) *SapCopy {
-	return &SapCopy{lis: lis, target: target}
+func NewSapCopy(lis net.Listener, cfg cc.Cfg) *SapCopy {
+	return &SapCopy{lis: lis, target: cfg.DefaultTarget}
 }

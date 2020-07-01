@@ -52,7 +52,7 @@ jobs:
       - name: GH Release
         uses: softprops/action-gh-release@v0.1.5
         with:
-          body_path: CHANGELOG.txt
+          body_path: FEATURES.txt
           files: |
             ${{steps.tag.outputs.tag}}_linux_amd64.zip
             ${{steps.tag.outputs.tag}}_darwin_amd64.zip

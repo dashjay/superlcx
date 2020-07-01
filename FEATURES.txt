@@ -1,16 +1,7 @@
-v1.0.2:
+EN:
     1. add config module
     2. add c_header middleware for custom header of req and resp
 
+ZH:
     1. 添加配置读取文件
     2. 添加c_header中间件，可以自定义请求头和返回头
-
-v1.0.1:
-    1. add blendmode.
-
-    1. 添加混合模式
-
-v1.0.0:
-    1. add middleware mode for superlcx.
-
-    1. 为superlcx添加中间件模式。

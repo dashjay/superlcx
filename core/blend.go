@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"superlcx/cc"
 )
 
 const maxReadTime = 10 * time.Second
@@ -20,14 +22,14 @@ type SapBlend struct {
 	*middleware
 }
 
-func NewSapBlend(lis net.Listener, target string, middleware string) *SapBlend {
-	defaultUrl, err := url.Parse(fmt.Sprintf("http://%s/", target))
+func NewSapBlend(lis net.Listener, cfg cc.Cfg) *SapBlend {
+	defaultUrl, err := url.Parse(fmt.Sprintf("http://%s/", cfg.DefaultTarget))
 	if err != nil {
 		panic(fmt.Sprintf("default url [%s] parse error, detail:[%s]", defaultUrl, err))
 	}
 	log.Printf("parse default url as %s", defaultUrl)
-	b := &SapBlend{lis: lis, defaultUrl: defaultUrl, middleware: newMiddleware(middleware)}
-
+	b := &SapBlend{lis: lis, defaultUrl: defaultUrl,
+		middleware: newMiddleware(cfg.Middleware)}
 	return b
 }
 
@@ -72,7 +74,6 @@ func (s *SapBlend) Serve() {
 				for _, respH := range s.respHandlers {
 					respH(resp)
 				}
-
 				resp.Write(conn)
 				cancel()
 			}

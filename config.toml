@@ -1,0 +1,21 @@
+ListenPort = 8081
+DefaultTarget = "0.0.0.0:8080"
+PPROFPort = 8999
+LogFlag = "ltd"
+Middleware = "c_header,stdout"
+Mode = "blend"
+
+[CustomHeaders]
+    [CustomHeaders.req1]
+    Key="X-REAL-IP"
+    Value="111.111.111.111"
+
+    [CustomHeaders.resp1]
+    Key="Server"
+    Value="ASP.NET"
+
+[ProxyUrls]
+    [ProxyUrls.portrait]
+    Scheme="http"
+    Host="0.0.0.0:8989"
+    Path="/statics/*"

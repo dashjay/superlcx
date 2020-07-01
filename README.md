@@ -5,18 +5,22 @@ port transfer tool with middleware kit
 
 # usage
 ```bash
-~/superlcx(master) » ./superlcx -h                                                                                               dashjay@zhaowenjies-MacBook-Pro
 Usage of ./superlcx:
   -M string
         middleware, comma separated if more than one, eg: --M stdout,dumps
+  -c string
+        load config from
   -host string
-        target host:port (default "0.0.0.0:8081")
+        target host:port. (default "0.0.0.0:8081")
   -l int
         listen port (default 8080)
+  -log string
+        l -> line of code, d -> date, t -> time, order doesn't matter (default "t")
   -m string
-        run mode (default "proxy")
+        run mode <proxy|copy|blend>. (default "proxy")
+  -pp int
+        pprof port (default 8999)
   -v    show version and about then exit.
-
 ```
 
 ### mode
@@ -31,6 +35,14 @@ Usage of ./superlcx:
 - blend
     - advantages: allocate low memory comparing with the proxy mode. it can run with the middleware interface.
     - disadvantages: the blend mode still need more memory(less than proxy), and could lead to memory jitter.
+
+### -c Configuration file
+> read configured with a Golang [toml library](https://github.com/BurntSushi/toml)
+
+⚠ If you read the configuration file with -c, please write all the configuration files, do not rely partly on the command line parameters, we do not know the internal implementation of the TOML library, may overwrite the origin config.
+
+For the documentation of the configuration file, please see: [Configuration Description](./docs/config.md)
+
 
 ### -M middleware
 When working in the proxy mode, middleware can be invoked to analyze the traffic in the process. For example, the built-in stdout middleware (sample middleware) can be used via '-M stdout'.

@@ -14,18 +14,15 @@ import (
 	"strings"
 	"time"
 
+	. "superlcx/cc"
 	"superlcx/core"
 )
 
-const version = "1.0.0"
+const version = "1.0.2"
 
 var (
 	showVersion bool
-	listenPort  int
-	hostPort    string
-	mode        string
-	middleware  string
-	logCfg      string
+	configFile  string
 )
 
 func init() {
@@ -37,19 +34,14 @@ func init() {
 		}
 	}()
 	flag.BoolVar(&showVersion, "v", false, "show version and about then exit.")
-	flag.IntVar(&listenPort, "l", 8080, "listen port")
-	flag.StringVar(&hostPort, "host", "0.0.0.0:8081", "target host:port.")
-	flag.StringVar(&mode, "m", "proxy", "run mode <proxy|copy|blend>.")
-	flag.StringVar(&middleware, "M", "", "middleware, comma separated if more than one, eg: --M stdout,dumps")
-	flag.StringVar(&logCfg, "log", "t", "l -> line of code, d -> date, t -> time, order doesn't matter")
+	flag.StringVar(&configFile, "c", "", "load config from")
+	flag.IntVar(&C.ListenPort, "l", 8080, "listen port")
+	flag.IntVar(&C.PPROFPort, "pp", 8999, "pprof port")
+	flag.StringVar(&C.DefaultTarget, "host", "0.0.0.0:8081", "target host:port.")
+	flag.StringVar(&C.Mode, "m", "proxy", "run mode <proxy|copy|blend>.")
+	flag.StringVar(&C.Middleware, "M", "", "middleware, comma separated if more than one, eg: --M stdout,dumps")
+	flag.StringVar(&C.LogFlag, "log", "t", "l -> line of code, d -> date, t -> time, order doesn't matter")
 	flag.Parse()
-	if listenPort < 1 || listenPort > 65535 {
-		panic("[x] Listen Port Invalid")
-	}
-	checkHost(hostPort)
-}
-
-func main() {
 	if showVersion {
 		fmt.Printf(`
   _____ _    _ _____  ______ _____  _      _______   __
@@ -63,40 +55,44 @@ Superlcx [%s], a tool kit for port transfer with middlewares!
 `, version)
 		os.Exit(0)
 	}
-	logC := strings.Split(logCfg, "")
-	logFlag := log.Ltime
-	for _, c := range logC {
-		switch c {
-		case "d":
-			logFlag |= log.Ldate
-		case "l":
-			logFlag |= log.Lshortfile
-		default:
-			continue
+	if configFile != "" {
+		err := C.InitConfig(configFile)
+		if err != nil {
+			panic(err)
 		}
 	}
-	log.SetFlags(logFlag)
+	C.SetLogFlag()
+	// print config after flag was set
+	C.Print()
+
+	if C.ListenPort < 1 || C.ListenPort > 65535 {
+		panic("[x] Listen Port Invalid")
+	}
+	checkHost(C.DefaultTarget)
+}
+
+func main() {
 	// Buried point for debug
 	go func() {
-		http.ListenAndServe(":8999", nil)
+		http.ListenAndServe(fmt.Sprintf(":%d", C.PPROFPort), nil)
 	}()
 
 	go showMemLog()
 
 	// start listen
-	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", listenPort))
+	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", C.ListenPort))
 	if err != nil {
 		panic(err)
 	}
-	switch mode {
+	switch C.Mode {
 	case "proxy":
-		c := core.NewSapProxy(lis, hostPort, middleware)
+		c := core.NewSapProxy(lis, C)
 		c.Serve()
 	case "copy":
-		c := core.NewSapCopy(lis, hostPort)
+		c := core.NewSapCopy(lis, C)
 		c.Serve()
 	case "blend":
-		c := core.NewSapBlend(lis, hostPort, middleware)
+		c := core.NewSapBlend(lis, C)
 		c.Serve()
 	default:
 		flag.PrintDefaults()

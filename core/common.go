@@ -1,14 +1,17 @@
 package core
 
 import (
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
 
+	"superlcx/cc"
+	"superlcx/middlewares/c_header"
 	"superlcx/middlewares/stdout"
 )
 
-func organizeUrl(req *http.Request, target *url.URL) {
+func organizeUrl(req *http.Request, defaultT *url.URL) {
 	if _, ok := req.Header["User-Agent"]; !ok {
 		// explicitly disable User-Agent so it's not set to default value
 		req.Header.Set("User-Agent", "")
@@ -24,6 +27,19 @@ func organizeUrl(req *http.Request, target *url.URL) {
 		}
 		return a + b
 	}
+	var target *url.URL = nil
+	if cc.C.ProxyUrls != nil && len(cc.C.ProxyUrls) > 0 {
+		for _, proxyUrl := range cc.C.ProxyUrls {
+			if proxyUrl.Re.MatchString(req.URL.RequestURI()) {
+				target = proxyUrl.U
+				break
+			}
+		}
+	}
+	if target == nil {
+		target = defaultT
+	}
+
 	targetQuery := target.RawQuery
 	req.URL.Scheme = target.Scheme
 	req.URL.Host = target.Host
@@ -48,9 +64,12 @@ func newMiddleware(mid string) *middleware {
 	if mid != "" {
 		ms := strings.Split(mid, ",")
 		for _, m := range ms {
-			switch m {
+			log.Printf("try load [%s] middleware.", m)
+			switch strings.TrimSpace(m) {
 			case "stdout":
 				middle.RegisterMiddleware(stdout.HandleRequest, stdout.HandleResponse)
+			case "c_header":
+				middle.RegisterMiddleware(c_header.HandleRequest, c_header.HandleResponse)
 			default:
 				reqH, respH := find(m)
 				middle.RegisterMiddleware(reqH, respH)

@@ -10,6 +10,7 @@ import (
 	"plugin"
 	"strings"
 
+	"superlcx/cc"
 	"superlcx/middlewares/stdout"
 )
 
@@ -20,8 +21,8 @@ type SapProxy struct {
 }
 
 // NewSapProxy 构建一个SapProxy
-func NewSapProxy(lis net.Listener, defaultHost string, middleware string) *SapProxy {
-	u, err := url.Parse(fmt.Sprintf("http://%s", defaultHost))
+func NewSapProxy(lis net.Listener, cfg cc.Cfg) *SapProxy {
+	u, err := url.Parse(fmt.Sprintf("http://%s", cfg.DefaultTarget))
 	if err != nil {
 		panic(err)
 	}
@@ -30,7 +31,7 @@ func NewSapProxy(lis net.Listener, defaultHost string, middleware string) *SapPr
 		defaultUrl: u,
 		lis:        lis,
 	}
-	p.Register(middleware)
+	p.Register(cfg.Middleware)
 	return p
 }
 

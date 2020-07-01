@@ -22,9 +22,9 @@ func handleRequest(over chan bool, req *http.Request) {
 	os.Stdout.Write([]byte("\n"))
 }
 
-func HandleResponse(req *http.Response) {
+func HandleResponse(resp *http.Response) {
 	over := make(chan bool)
-	go handlerResponse(over, req)
+	go handlerResponse(over, resp)
 	<-over
 }
 
