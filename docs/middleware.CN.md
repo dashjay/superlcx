@@ -29,3 +29,34 @@ newReq, err := http.ReadRequest(bufio.NewReader(bytes.NewReader(content)))
 ```
 
 这样可以完全避免req请求体收到影响，能够正常发送到服务端以收到回复。
+
+## 内置中间件说明文档
+
+### stdout
+该中间件仅仅是将请求和返回dump出一份，输出到标准输出，作为一个示例模板的中间件。
+
+### c_header
+改中间件，可以根据配置文件，对请求和返回中的头进行添加或者修改，可根据[配置文件中的说明](./config.CN.md)，对config.toml进行编辑，达到你想要的效果
+
+```toml
+# c_header config
+[CustomHeaders]
+    [CustomHeaders.req1] # req开头->代表添加或者修改请求头
+    Key="X-REAL-IP"
+    Value="111.111.111.111"
+
+    [CustomHeaders.resp1] # resp开头->代表添加或者修改返回头
+    Key="Server"
+    Value="ASP.NET"
+```
+
+### sub_filter
+和nginx中的sub_filter功能完全相同，针对指定路径（支持正则匹配），对某指定路径请求的返回值进行修改，替换页面内容。
+
+```toml
+[SubFilter]
+    [SubFilter.test] # 名字暂时无用
+    Old="</head>" # 原来的
+    Repl='<script src="/js/jquery.min.js"></script></head>' # 替换为
+    Path="/" # 指定url（支持正则表达式）
+```

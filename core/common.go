@@ -9,6 +9,7 @@ import (
 	"superlcx/cc"
 	"superlcx/middlewares/c_header"
 	"superlcx/middlewares/stdout"
+	"superlcx/middlewares/sub_filter"
 )
 
 func organizeUrl(req *http.Request, defaultT *url.URL) {
@@ -70,6 +71,8 @@ func newMiddleware(mid string) *middleware {
 				middle.RegisterMiddleware(stdout.HandleRequest, stdout.HandleResponse)
 			case "c_header":
 				middle.RegisterMiddleware(c_header.HandleRequest, c_header.HandleResponse)
+			case "sub_filter":
+				middle.RegisterMiddleware(sub_filter.HandleRequest, sub_filter.HandleResponse)
 			default:
 				reqH, respH := find(m)
 				middle.RegisterMiddleware(reqH, respH)

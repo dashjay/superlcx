@@ -18,7 +18,7 @@ import (
 	"superlcx/core"
 )
 
-const version = "1.0.2"
+const version = "1.0.3"
 
 var (
 	showVersion bool

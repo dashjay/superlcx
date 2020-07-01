@@ -11,8 +11,8 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-
 var C Cfg
+
 // proxyUrl add proxy Config to help DefaultTransport send the request to
 // urls specified in the configuration
 type proxyUrl struct {
@@ -21,6 +21,18 @@ type proxyUrl struct {
 	Path   string         `toml:"Path"`
 	U      *url.URL       `toml:"-"`
 	Re     *regexp.Regexp `toml:"-"`
+}
+
+type SubFilter struct {
+	Old         string         `toml:"Old"`
+	Repl        string         `toml:"Repl"`
+	Path        string         `toml:"Path"`
+	RUriMatcher *regexp.Regexp `toml:"-"`
+	OldMatcher  *regexp.Regexp
+}
+
+func (s *SubFilter) HandleLine(line []byte) []byte {
+	return s.OldMatcher.ReplaceAll(line, []byte(s.Repl))
 }
 
 // customHeader help resp
@@ -41,6 +53,9 @@ type Cfg struct {
 
 	// add custom header
 	CustomHeaders map[string]customHeader `toml:"CustomHeaders"`
+
+	// sub_filter
+	SubFilters map[string]SubFilter `toml:"SubFilter"`
 }
 
 // InitConfig pass in a filename and reread all config from file to cover origin value
@@ -50,8 +65,10 @@ func (c *Cfg) InitConfig(filename string) error {
 	if _, err = toml.DecodeFile(filename, c); err != nil {
 		return err
 	}
-	err = c.parseProxyUrls()
-	if err != nil {
+	if err = c.parseProxyUrls(); err != nil {
+		return err
+	}
+	if err = c.parseSubFilters(); err != nil {
 		return err
 	}
 	return nil
@@ -81,6 +98,25 @@ func (c *Cfg) parseProxyUrls() error {
 		c.ProxyUrls[k] = temp
 	}
 	log.Printf("parseProxyUrls ok! len(ProxyUrls)=[%d]", len(c.ProxyUrls))
+	return nil
+}
+
+func (c *Cfg) parseSubFilters() error {
+	var err error
+	for sub := range c.SubFilters {
+		f := c.SubFilters[sub]
+		f.RUriMatcher, err = regexp.Compile(f.Path)
+		if err != nil {
+			return err
+		}
+		f.OldMatcher, err = regexp.Compile(f.Old)
+		if err != nil {
+			return err
+		}
+		log.Printf("load subFilter on url:[%s], filter:[%s]->[%s]", f.Path, f.Old, f.Repl)
+		c.SubFilters[sub] = f
+	}
+	log.Printf("parseSubFilters ok! len(SubFilter)=[%d]", len(c.SubFilters))
 	return nil
 }
 

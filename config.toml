@@ -2,9 +2,17 @@ ListenPort = 8081
 DefaultTarget = "0.0.0.0:8080"
 PPROFPort = 8999
 LogFlag = "ltd"
-Middleware = "c_header,stdout"
+Middleware = "sub_filter,c_header,stdout"
 Mode = "blend"
 
+# pass_proxy work on blend and proxy mode
+[ProxyUrls]
+    [ProxyUrls.test]
+    Scheme="http"
+    Host="0.0.0.0:8989"
+    Path="/statics/*"
+
+# c_header config
 [CustomHeaders]
     [CustomHeaders.req1]
     Key="X-REAL-IP"
@@ -14,8 +22,9 @@ Mode = "blend"
     Key="Server"
     Value="ASP.NET"
 
-[ProxyUrls]
-    [ProxyUrls.portrait]
-    Scheme="http"
-    Host="0.0.0.0:8989"
-    Path="/statics/*"
+# sub_filter config
+[SubFilter]
+    [SubFilter.test]
+    Old="</head>"
+    Repl='<script src="/js/jquery.min.js"></script></head>'
+    Path="/"

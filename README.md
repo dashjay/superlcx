@@ -46,7 +46,7 @@ For the documentation of the configuration file, please see: [Configuration Desc
 
 ### -M middleware
 When working in the proxy mode, middleware can be invoked to analyze the traffic in the process. For example, the built-in stdout middleware (sample middleware) can be used via '-M stdout'.
-(Must be in the proxy mode to work)
+(Must be in the proxy or blend mode to work)
 
 If you want to implement your own middleware, check out:
 [Middleware standard](./docs/middleware.md)
@@ -58,7 +58,7 @@ middlewares
     └── handler.go
 ```
 
-The interfaces are exposing as follows under 'handler.go'. If you need to load the configuration, load it yourself.(I will then use TOML to pass the configuration)
+The interfaces are exposing as follows under 'handler.go'. If you need to load the configuration, load it yourself, or use the cc module TOML to load your config.
 ```
 func HandleRequest(req *http.Request)
 func HandleResponse(req *http.Response)

@@ -31,3 +31,35 @@ newReq, err := http.ReadRequest(bufio.NewReader(bytes.NewReader(content)))
 ```
 
 In this way, it can completely avoid the influence of req request body and send it to the server to receive the reply.
+
+
+## Built-in middleware documentation
+
+### stdout
+The middleware simply dumps a copy of the request and response to  stdout as a sample template.
+
+### c_header
+This middleware can add or modify headers in requests and returns based on configuration files, you can Edit config.toml to get what you want by referring to [Configuration Description](./config.md).
+
+```toml
+# c_header config
+[CustomHeaders]
+    [CustomHeaders.req1] # start with req -> means adding or modifying the request header
+    Key="X-REAL-IP"
+    Value="111.111.111.111"
+
+    [CustomHeaders.resp1] # start with resp -> means adding or modifying the response header
+    Key="Server"
+    Value="ASP.NET"
+```
+
+### sub_filter
+The middleware is the same as the sub_filter function in NGINX. For the specified path (regular matching is supported), the response value of a specified path request will be modified referring to configration. 
+
+```toml
+[SubFilter]
+    [SubFilter.test] # name is temporarily useless
+    Old="</head>" # original text
+    Repl='<script src="/js/jquery.min.js"></script></head>' # what will be replace if matched
+    Path="/" # specific url（Support for regular expressions）
+```

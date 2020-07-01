@@ -1,7 +1,5 @@
 EN:
-    1. add config module
-    2. add c_header middleware for custom header of req and resp
+    1. add middleware sub_filter.
 
 ZH:
-    1. 添加配置读取文件
-    2. 添加c_header中间件，可以自定义请求头和返回头
+    1. 添加中间件sub_filter。
