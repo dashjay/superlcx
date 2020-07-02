@@ -41,4 +41,12 @@ Mode = "blend"
     Scheme="http"
     Host="0.0.0.0:8989"
     Path="/superlcx/*"
+
+# sub_filter 配置
+# 将用户访问路径Path时，服务端返回的内容中和Old匹配的会被更换为Repl
+[SubFilter]
+    [SubFilter.test]
+    Old="</head>"
+    Repl='<script src="/js/jquery.min.js"></script></head>'
+    Path="/"
 ```

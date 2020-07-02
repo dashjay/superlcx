@@ -6,15 +6,21 @@
  ____) | |__| | |    | |____| | \ \| |___| |____ / . \ 
 |_____/ \____/|_|    |______|_|  \_\______\_____/_/ \_\
 ```
-<p align="center">
-<a href="https://travis-ci.com/github/dashjay/superlcx"><img src="https://travis-ci.com/dashjay/superlcx.svg?branch=master" alt="Build Status"></a>
-</p>
+
+<div align="center">
+  <a href="https://travis-ci.com/github/dashjay/superlcx"><img src="https://travis-ci.com/dashjay/superlcx.svg?branch=master" alt="Build Status"></a>
+  <a href="https://github.com/dashjay/superlcx/actions?query=workflow%3Aauto_release"><img src="https://github.com/dashjay/superlcx/workflows/auto_release/badge.svg" alt="Build Status"></a>
+</div>
 
 [EN][中文](./README.CN.md)
 
 # intro
-A high performance proxy tool with a lot rich middleware.
-SuperLcx proxy request and send response back, on the way to do this, use some middleware to handle transferred data to implement some high-level operations.
+A high performance tool with some middleware. SuperLcx ACTS as a proxy for the request and response value from the server. During the process, some middleware will be called to realize some operations:
+- Modify the request (forward request).
+- Modify the response (sub_filter).
+- Log requests and response (dump traffics).
+- Hook operations set by yourself, such as implementing a Python hook through GRPC, or changing the behavior of middleware through an interpreted language such as Lua or Js.
+- implement your own middleware...
 
 # usage
 ```bash

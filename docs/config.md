@@ -1,4 +1,5 @@
-## 配置文件说明
+## Configuration description
+
 [EN][中文](./config.CN.md)
 > TOML's comments start with #(hash)，It is recommended that comments in the TOML file, making it easy to read. Because of internationalization, I do not include comments in any language in my default configuration file.
 
@@ -8,7 +9,7 @@ ListenPort = 8081 # listen sock port
 DefaultTarget = "0.0.0.0:8080" # The default destination, if not processed by any middleware, is where the request will be sent.
 PPROFPort = 8999 # debug port for golang
 
-# 日志格式 
+# Log format 
 # l for line of code, print eg (blend.go:37:) before every line.
 # t for time, print eg (11:26:24) beforeevery line.
 # d for date, print date eg (2020/07/01 ) before every line.
@@ -41,4 +42,12 @@ Mode = "blend"
     Scheme="http"
     Host="0.0.0.0:8989"
     Path="/superlcx/*"
+
+# sub_filter config
+# When the user accesses the `Path`, the content(line) response from the server and matches(regexp) the `Old` will be replaced with Repl by line.
+[SubFilter]
+    [SubFilter.test]
+    Old="</head>"
+    Repl='<script src="/js/jquery.min.js"></script></head>'
+    Path="/"
 ```

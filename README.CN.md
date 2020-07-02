@@ -7,15 +7,20 @@
 |_____/ \____/|_|    |______|_|  \_\______\_____/_/ \_\
 ```
 
-<p align="center">
-<a href="https://travis-ci.com/github/dashjay/superlcx"><img src="https://travis-ci.com/dashjay/superlcx.svg?branch=master" alt="Build Status"></a>
-</p>
+<div align="center">
+  <a href="https://travis-ci.com/github/dashjay/superlcx"><img src="https://travis-ci.com/dashjay/superlcx.svg?branch=master" alt="Build Status"></a>
+  <a href="https://github.com/dashjay/superlcx/actions?query=workflow%3Aauto_release"><img src="https://github.com/dashjay/superlcx/workflows/auto_release/badge.svg" alt="Build Status"></a>
+</div>
 
 [EN](./README.md)[中文]
 
 # 介绍
-一个高性能的工具，具有丰富的中间件。
-SuperLcx为请求做代理，并返回服务端的返回值，过程中调用一些中间件，来实现比较高级的操作。
+一个高性能的工具，具有丰富的中间件。SuperLcx为请求做代理，并返回服务端的返回值，过程中调用一些中间件，来实现一些操作：
+- 修改请求值（转发请求体）。
+- 修改返回值（sub_filter）。
+- 记录请求和返回体（dump流量）。
+- hook其他操作，例如通过grpc实现一个python hook，或通过lua js 等解释语言来改变中间件的行为。
+- 实现你自己的中间件……
 
 # 用法
 ```bash
@@ -53,13 +58,13 @@ Usage of ./superlcx:
 ### -c 配置读取
 > 配置的读取采用了一个golang的[toml库](https://github.com/BurntSushi/toml)
 
-⚠️可能会如果使用-c读取配置文件后，请讲全部配置全部写入配置文件，不要部分依赖命令行参数，不清楚toml库的内部实现，可能出现覆盖的情况。
+⚠️可能会如果使用-c读取配置文件后，请将全部配置全部写入配置文件，不要部分依赖命令行参数，不清楚toml库的内部实现，可能出现覆盖的情况。
 
 配置文件的文档请查看：[配置文件说明](./docs/config.CN.md)
 
 ### -M 中间件
-当工作在代理模式下，可以调用中间件来对过程中的流量进行分析。例如，系统内置stdout中间件（示例中间件），可以通过`-M stdout`来使用。
-（必须在代理模式和混合模式下才能生效）
+当工作在代理模式或混合模式下，可以调用中间件来对过程中的流量进行分析。例如，系统内置stdout中间件（示例中间件），可以通过`-M stdout`来使用。
+（必须在代理模式或混合模式下才能生效）
 
 如果想自己实现一个中间件请查看：
 [中间件的编写规范](./docs/middleware.CN.md)
