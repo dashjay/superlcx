@@ -8,7 +8,27 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+      include:
+          - os: linux
+            file: superlcx_linux_amd64
+            args: -9 -o superlcx_linux_amd64_upx
+
+          - os: windows
+            file: superlcx_windows_amd64.exe
+            args: -9 -o superlcx_windows_amd64_upx.exe
+
+          - os: osx
+            file: superlcx_darwin_amd64
+            args: -9 -o superlcx_darwin_amd64_upx
+
     steps:
+      - name: Get tag
+        id: tag
+        uses: dawidd6/action-get-tag@v1
+
       - name: Set up GO 1.x
         uses: actions/setup-go@v2
         with:
@@ -26,10 +46,6 @@ jobs:
           make build GOOS=linux ARCH=amd64 TARGET=superlcx_linux_amd64;  \
           make build GOOS=darwin arch=amd64 TARGET=superlcx_darwin_amd64; \
           make build GOOS=windows arch=amd64 TARGET=superlcx_windows_amd64.exe;
-
-      - name: Get tag
-        id: tag
-        uses: dawidd6/action-get-tag@v1
 
       - name: Archive linux_amd64
         uses: thedoctor0/zip-release@master
@@ -49,13 +65,23 @@ jobs:
           path: superlcx_windows_amd64.exe
           filename: '${{steps.tag.outputs.tag}}_windows_amd64.zip'
 
+      - name: Compress binaries
+        uses: svenstaro/upx-action@v1-release
+        with:
+          file: ${{ matrix.file }}
+          args: ${{ matrix.args }}
+          strip: ${{ matrix.strip }}
+
       - name: GH Release
         uses: softprops/action-gh-release@v0.1.5
         with:
           body_path: FEATURES.txt
           files: |
             ${{steps.tag.outputs.tag}}_linux_amd64.zip
+            superlcx_linux_amd64_upx
             ${{steps.tag.outputs.tag}}_darwin_amd64.zip
+            superlcx_windows_amd64_upx.exe
             ${{steps.tag.outputs.tag}}_windows_amd64.zip
+            superlcx_darwin_amd64_upx
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

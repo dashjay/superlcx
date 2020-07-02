@@ -27,4 +27,10 @@ jobs:
         run: go vet cmd/main.go
 
       - name: Go Build
-        run: go build cmd/main.go
+        run: go build -o superlcx cmd/main.go
+
+      - name: Compress binaries
+        uses: svenstaro/upx-action@v1-release
+        with:
+          file: superlcx
+          args: -9
