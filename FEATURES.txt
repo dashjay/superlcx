@@ -1,8 +1,10 @@
 EN:
     1. add js_lua middleware.
+    2. use upx for compress binaries.
 
 ZH:
     1. 添加js_lua 中间件。
+    2. 使用 upx 对二进制程序进行压缩。
 
 
 

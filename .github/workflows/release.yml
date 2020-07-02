@@ -11,18 +11,27 @@ jobs:
 
     strategy:
       matrix:
-      include:
+        include:
           - os: linux
-            file: superlcx_linux_amd64
-            args: -9 -o superlcx_linux_amd64_upx
+            arch: amd64
+            target: superlcx_linux_amd64
+            upx_args: -9 -o
+            upx_target: superlcx_linux_amd64_upx
+            strip: true
 
           - os: windows
-            file: superlcx_windows_amd64.exe
-            args: -9 -o superlcx_windows_amd64_upx.exe
+            arch: amd64
+            target: superlcx_windows_amd64.exe
+            upx_args: -9 -o
+            upx_target: superlcx_windows_amd64_upx.exe
+            strip: true
 
-          - os: osx
-            file: superlcx_darwin_amd64
-            args: -9 -o superlcx_darwin_amd64_upx
+          - os: darwin
+            arch: amd64
+            target: superlcx_darwin_amd64
+            upx_args: -9 -o
+            upx_target: superlcx_darwin_amd64_upx
+            strip: false
 
     steps:
       - name: Get tag
@@ -42,46 +51,40 @@ jobs:
         run: go mod download
 
       - name: Go Build
-        run: |
-          make build GOOS=linux ARCH=amd64 TARGET=superlcx_linux_amd64;  \
-          make build GOOS=darwin arch=amd64 TARGET=superlcx_darwin_amd64; \
-          make build GOOS=windows arch=amd64 TARGET=superlcx_windows_amd64.exe;
+        run: make build GOOS=${{ matrix.os }} ARCH=${{ matrix.arch }} TARGET=${{ matrix.target }}
 
-      - name: Archive linux_amd64
+      - name: Archive ${{ matrix.target }}
         uses: thedoctor0/zip-release@master
         with:
-          path: superlcx_linux_amd64
-          filename: '${{steps.tag.outputs.tag}}_linux_amd64.zip'
+          path: '${{ matrix.target }}'
+          filename: '${{ steps.tag.outputs.tag }}_${{ matrix.os }}_${{ matrix.arch }}.zip'
 
-      - name: Archive darwin_amd64
-        uses: thedoctor0/zip-release@master
-        with:
-          path: superlcx_darwin_amd64
-          filename: '${{steps.tag.outputs.tag}}_darwin_amd64.zip'
-
-      - name: Archive windows_amd64
-        uses: thedoctor0/zip-release@master
-        with:
-          path: superlcx_windows_amd64.exe
-          filename: '${{steps.tag.outputs.tag}}_windows_amd64.zip'
-
-      - name: Compress binaries
+      - name: Compress binaries ${{ matrix.os }}
         uses: svenstaro/upx-action@v1-release
         with:
-          file: ${{ matrix.file }}
-          args: ${{ matrix.args }}
+          file: ${{ matrix.target }}
+          args: '${{ matrix.upx_args }} ${{ matrix.upx_target }}'
           strip: ${{ matrix.strip }}
+
+      - name: Archive ${{ matrix.upx_target }}
+        uses: thedoctor0/zip-release@master
+        with:
+          path: '${{ matrix.upx_target }}'
+          filename: '${{ steps.tag.outputs.tag }}_${{ matrix.os }}_${{ matrix.arch }}_upx.zip'
 
       - name: GH Release
         uses: softprops/action-gh-release@v0.1.5
         with:
-          body_path: FEATURES.txt
           files: |
-            ${{steps.tag.outputs.tag}}_linux_amd64.zip
-            superlcx_linux_amd64_upx
-            ${{steps.tag.outputs.tag}}_darwin_amd64.zip
-            superlcx_windows_amd64_upx.exe
-            ${{steps.tag.outputs.tag}}_windows_amd64.zip
-            superlcx_darwin_amd64_upx
+            ${{ steps.tag.outputs.tag }}_${{ matrix.os }}_${{ matrix.arch }}.zip
+            ${{ steps.tag.outputs.tag }}_${{ matrix.os }}_${{ matrix.arch }}_upx.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Distinct FEATURES
+        uses: softprops/action-gh-release@v0.1.5
+        if: startsWith(matrix.os, 'linux')
+        with:
+          body_path: FEATURES.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
