@@ -11,7 +11,7 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-var C Cfg
+var Config Cfg
 
 // proxyUrl add proxy Config to help DefaultTransport send the request to
 // urls specified in the configuration
@@ -56,6 +56,10 @@ type Cfg struct {
 
 	// sub_filter
 	SubFilters map[string]SubFilter `toml:"SubFilter"`
+
+	// js lua scripts
+	LuaPath string `toml:"LuaPath"`
+	JsPath  string `toml:"JSPath"`
 }
 
 // InitConfig pass in a filename and reread all config from file to cover origin value
@@ -65,6 +69,9 @@ func (c *Cfg) InitConfig(filename string) error {
 	if _, err = toml.DecodeFile(filename, c); err != nil {
 		return err
 	}
+	c.SetLogFlag()
+	// print config after flag was set
+	c.Print()
 	if err = c.parseProxyUrls(); err != nil {
 		return err
 	}

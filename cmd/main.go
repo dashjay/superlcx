@@ -18,7 +18,7 @@ import (
 	"superlcx/core"
 )
 
-const version = "1.0.3"
+const version = "1.0.4"
 
 var (
 	showVersion bool
@@ -29,18 +29,19 @@ func init() {
 	defer func() {
 		err := recover()
 		if err != nil {
+			fmt.Print(err)
 			flag.PrintDefaults()
 			os.Exit(-1)
 		}
 	}()
 	flag.BoolVar(&showVersion, "v", false, "show version and about then exit.")
 	flag.StringVar(&configFile, "c", "", "load config from")
-	flag.IntVar(&C.ListenPort, "l", 8080, "listen port")
-	flag.IntVar(&C.PPROFPort, "pp", 8999, "pprof port")
-	flag.StringVar(&C.DefaultTarget, "host", "0.0.0.0:8081", "target host:port.")
-	flag.StringVar(&C.Mode, "m", "proxy", "run mode <proxy|copy|blend>.")
-	flag.StringVar(&C.Middleware, "M", "", "middleware, comma separated if more than one, eg: --M stdout,dumps")
-	flag.StringVar(&C.LogFlag, "log", "t", "l -> line of code, d -> date, t -> time, order doesn't matter")
+	flag.IntVar(&Config.ListenPort, "l", 8080, "listen port")
+	flag.IntVar(&Config.PPROFPort, "pp", 8999, "pprof port")
+	flag.StringVar(&Config.DefaultTarget, "host", "0.0.0.0:8081", "target host:port.")
+	flag.StringVar(&Config.Mode, "m", "proxy", "run mode <proxy|copy|blend>.")
+	flag.StringVar(&Config.Middleware, "M", "", "middleware, comma separated if more than one, eg: --M stdout,dumps")
+	flag.StringVar(&Config.LogFlag, "log", "t", "l -> line of code, d -> date, t -> time, order doesn't matter")
 	flag.Parse()
 	if showVersion {
 		fmt.Printf(`
@@ -55,44 +56,42 @@ Superlcx [%s], a tool kit for port transfer with middlewares!
 `, version)
 		os.Exit(0)
 	}
+
 	if configFile != "" {
-		err := C.InitConfig(configFile)
+		err := Config.InitConfig(configFile)
 		if err != nil {
 			panic(err)
 		}
 	}
-	C.SetLogFlag()
-	// print config after flag was set
-	C.Print()
 
-	if C.ListenPort < 1 || C.ListenPort > 65535 {
+	if Config.ListenPort < 1 || Config.ListenPort > 65535 {
 		panic("[x] Listen Port Invalid")
 	}
-	checkHost(C.DefaultTarget)
+	checkHost(Config.DefaultTarget)
 }
 
 func main() {
 	// Buried point for debug
 	go func() {
-		http.ListenAndServe(fmt.Sprintf(":%d", C.PPROFPort), nil)
+		http.ListenAndServe(fmt.Sprintf(":%d", Config.PPROFPort), nil)
 	}()
 
 	go showMemLog()
 
 	// start listen
-	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", C.ListenPort))
+	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", Config.ListenPort))
 	if err != nil {
 		panic(err)
 	}
-	switch C.Mode {
+	switch Config.Mode {
 	case "proxy":
-		c := core.NewSapProxy(lis, C)
+		c := core.NewSapProxy(lis, Config)
 		c.Serve()
 	case "copy":
-		c := core.NewSapCopy(lis, C)
+		c := core.NewSapCopy(lis, Config)
 		c.Serve()
 	case "blend":
-		c := core.NewSapBlend(lis, C)
+		c := core.NewSapBlend(lis, Config)
 		c.Serve()
 	default:
 		flag.PrintDefaults()

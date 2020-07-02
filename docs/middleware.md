@@ -63,3 +63,21 @@ The middleware is the same as the sub_filter function in NGINX. For the specifie
     Repl='<script src="/js/jquery.min.js"></script></head>' # what will be replace if matched
     Path="/" # specific url（Support for regular expressions）
 ```
+
+### js_lua
+Using interpreted languages to conservatively extend functionality is another alternative for frequent updates.
+The program USES the following two libraries to implement invoke of Lua and Js.
+```
+"github.com/robertkrimen/otto"
+"github.com/yuin/gopher-lua"
+```
+
+Configuration is as follows
+
+```toml
+Middleware = "js_lua"
+LuaPath="./middlewares/js_lua/sub_custom.lua"
+JsPath="./middlewares/js_lua/sub_custom.js"
+```
+
+This two scripts will be added as middleware only when LuaPath and JsPath are not empty and middleware js_lua was added.

@@ -2,8 +2,10 @@ ListenPort = 8081
 DefaultTarget = "0.0.0.0:8080"
 PPROFPort = 8999
 LogFlag = "ltd"
-Middleware = "sub_filter,c_header,stdout"
+Middleware = "sub_filter,c_header,stdout,js_lua"
 Mode = "blend"
+LuaPath="./middlewares/js_lua/sub_custom.lua"
+JsPath="./middlewares/js_lua/sub_custom.js"
 
 # pass_proxy work on blend and proxy mode
 [ProxyUrls]

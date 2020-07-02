@@ -17,15 +17,15 @@ func HandleRequest(req *http.Request) {
 }
 
 func HandleResponse(resp *http.Response) {
-	if C.SubFilters == nil || len(C.SubFilters) == 0 {
+	if Config.SubFilters == nil || len(Config.SubFilters) == 0 {
 		return
 	}
 	ruri := resp.Request.URL.RequestURI()
 	log.Printf("check invoke subFilter on url [%s]", ruri)
 	var mk []SubFilter
-	if C.SubFilters != nil && len(C.SubFilters) != 0 {
-		for sub := range C.SubFilters {
-			f := C.SubFilters[sub]
+	if Config.SubFilters != nil && len(Config.SubFilters) != 0 {
+		for sub := range Config.SubFilters {
+			f := Config.SubFilters[sub]
 			if f.RUriMatcher.MatchString(ruri) {
 				mk = append(mk, f)
 			}

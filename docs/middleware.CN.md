@@ -60,3 +60,19 @@ newReq, err := http.ReadRequest(bufio.NewReader(bytes.NewReader(content)))
     Repl='<script src="/js/jquery.min.js"></script></head>' # 替换为
     Path="/" # 指定url（支持正则表达式）
 ```
+
+
+### js_lua
+使用解释型语言来保守的扩展功能，是作为频繁更新的另一选择。
+该程序采用了如下两个模块库，来实现lua和js的调用
+```
+"github.com/robertkrimen/otto"
+"github.com/yuin/gopher-lua"
+```
+配置如下
+```toml
+Middleware = "js_lua"
+LuaPath="./middlewares/js_lua/sub_custom.lua"
+JsPath="./middlewares/js_lua/sub_custom.js"
+```
+只有在middleware中添加了该脚本，并且在LuaPath和JsPath不为空时，才会载入脚本。

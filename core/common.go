@@ -6,8 +6,11 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/google/uuid"
+
 	"superlcx/cc"
 	"superlcx/middlewares/c_header"
+	"superlcx/middlewares/js_lua"
 	"superlcx/middlewares/stdout"
 	"superlcx/middlewares/sub_filter"
 )
@@ -29,8 +32,8 @@ func organizeUrl(req *http.Request, defaultT *url.URL) {
 		return a + b
 	}
 	var target *url.URL = nil
-	if cc.C.ProxyUrls != nil && len(cc.C.ProxyUrls) > 0 {
-		for _, proxyUrl := range cc.C.ProxyUrls {
+	if cc.Config.ProxyUrls != nil && len(cc.Config.ProxyUrls) > 0 {
+		for _, proxyUrl := range cc.Config.ProxyUrls {
 			if proxyUrl.Re.MatchString(req.URL.RequestURI()) {
 				target = proxyUrl.U
 				break
@@ -50,6 +53,8 @@ func organizeUrl(req *http.Request, defaultT *url.URL) {
 	} else {
 		req.URL.RawQuery = targetQuery + "&" + req.URL.RawQuery
 	}
+
+	req.Header.Add(cc.UNIQUEID, uuid.New().String())
 }
 
 type middleware struct {
@@ -73,6 +78,8 @@ func newMiddleware(mid string) *middleware {
 				middle.RegisterMiddleware(c_header.HandleRequest, c_header.HandleResponse)
 			case "sub_filter":
 				middle.RegisterMiddleware(sub_filter.HandleRequest, sub_filter.HandleResponse)
+			case "js_lua":
+				middle.RegisterMiddleware(js_lua.HandleRequest, js_lua.HandleResponse)
 			default:
 				reqH, respH := find(m)
 				middle.RegisterMiddleware(reqH, respH)

@@ -1,5 +1,8 @@
 EN:
-    1. add middleware sub_filter.
+    1. add js_lua middleware.
 
 ZH:
-    1. 添加中间件sub_filter。
+    1. 添加js_lua 中间件。
+
+
+
