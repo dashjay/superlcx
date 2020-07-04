@@ -10,5 +10,6 @@ go:
   - "1.14.x"
 
 script:
+  - go test test/*.go -v
   - go vet cmd/main.go
   - go build cmd/main.go

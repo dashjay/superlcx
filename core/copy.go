@@ -1,6 +1,8 @@
 package core
 
 import (
+	"context"
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -14,18 +16,23 @@ type SapCopy struct {
 	target string
 }
 
-func (s *SapCopy) Serve() {
+func (s *SapCopy) Serve(ctx context.Context) {
 	log.Printf("superlcx work in copy mode!")
+	go func() {
+		<-ctx.Done()
+		s.lis.Close()
+	}()
 	for {
 		conn, err := s.lis.Accept()
 		if err != nil {
-			log.Printf("[x] accept error, detail: [%s]", conn)
+			log.Printf("[x] accept error, detail: [%s]", err)
 			return
 		}
 		conn2, err := net.Dial("tcp", s.target)
 		if err != nil {
 			log.Printf("[x] connect to target error, detail: [%s]", err)
-			return
+			conn.Close()
+			continue
 		}
 		log.Printf("[+] transfer between [%s] <-> [%s]", conn.LocalAddr(), conn2.RemoteAddr())
 		go func() {
@@ -46,6 +53,11 @@ func (s *SapCopy) Serve() {
 	}
 }
 
-func NewSapCopy(lis net.Listener, cfg cc.Cfg) *SapCopy {
+func NewSapCopy(cfg cc.Cfg) *SapCopy {
+	// start listen
+	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", cfg.ListenPort))
+	if err != nil {
+		panic(err)
+	}
 	return &SapCopy{lis: lis, target: cfg.DefaultTarget}
 }

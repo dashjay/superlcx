@@ -1,17 +1,19 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
-	"net"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
+	"os/signal"
 	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	. "superlcx/cc"
@@ -72,31 +74,40 @@ Superlcx [%s], a tool kit for port transfer with middlewares!
 
 func main() {
 	// Buried point for debug
-	go func() {
-		http.ListenAndServe(fmt.Sprintf(":%d", Config.PPROFPort), nil)
-	}()
-
+	go http.ListenAndServe(fmt.Sprintf(":%d", Config.PPROFPort), nil)
 	go showMemLog()
+	ctx, cancel := context.WithCancel(context.Background())
 
-	// start listen
-	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", Config.ListenPort))
-	if err != nil {
-		panic(err)
-	}
-	switch Config.Mode {
-	case "proxy":
-		c := core.NewSapProxy(lis, Config)
-		c.Serve()
-	case "copy":
-		c := core.NewSapCopy(lis, Config)
-		c.Serve()
-	case "blend":
-		c := core.NewSapBlend(lis, Config)
-		c.Serve()
-	default:
-		flag.PrintDefaults()
-		os.Exit(-1)
-	}
+	var (
+		// sigs, when anything unexpected happened, a signal will send to
+		// this chan. then server start to stop.
+		sigs = make(chan os.Signal, 1)
+		// when everything closed, a signal will send to done. the main Goroutine then stop.
+		done = make(chan bool, 1)
+	)
+	go func() {
+		switch Config.Mode {
+		case "proxy":
+			c := core.NewSapProxy(Config)
+			c.Serve(ctx)
+		case "copy":
+			c := core.NewSapCopy(Config)
+			c.Serve(ctx)
+		case "blend":
+			c := core.NewSapBlend(Config)
+			c.Serve(ctx)
+		default:
+			flag.PrintDefaults()
+			sigs <- os.Interrupt
+		}
+	}()
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-sigs
+		cancel()
+		done <- true
+	}()
+	<-done
 }
 
 // checkHost check the ip:port valid

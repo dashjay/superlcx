@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -21,7 +22,12 @@ type SapProxy struct {
 }
 
 // NewSapProxy 构建一个SapProxy
-func NewSapProxy(lis net.Listener, cfg cc.Cfg) *SapProxy {
+func NewSapProxy(cfg cc.Cfg) *SapProxy {
+	// start listen
+	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", cfg.ListenPort))
+	if err != nil {
+		panic(err)
+	}
 	u, err := url.Parse(fmt.Sprintf("http://%s", cfg.DefaultTarget))
 	if err != nil {
 		panic(err)
@@ -65,14 +71,16 @@ func (s *SapProxy) modifyResponse(r *http.Response) error {
 	return nil
 }
 
-func (s *SapProxy) Serve() {
+func (s *SapProxy) Serve(ctx context.Context) {
 	log.Printf("superlcx work in proxy mode!")
 	proxy := &httputil.ReverseProxy{
 		Director:       s.director,
 		Transport:      &myTripper{RoundTripper: http.DefaultTransport, p: s},
 		ModifyResponse: s.modifyResponse,
 	}
-	panic(http.Serve(s.lis, proxy))
+	go http.Serve(s.lis, proxy)
+	<-ctx.Done()
+	s.lis.Close()
 }
 
 func (s *SapProxy) Register(middleware string) {

@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"superlcx/cc"
@@ -22,7 +23,12 @@ type SapBlend struct {
 	*middleware
 }
 
-func NewSapBlend(lis net.Listener, cfg cc.Cfg) *SapBlend {
+func NewSapBlend(cfg cc.Cfg) *SapBlend {
+	// start listen
+	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", cfg.ListenPort))
+	if err != nil {
+		panic(err)
+	}
 	defaultUrl, err := url.Parse(fmt.Sprintf("http://%s/", cfg.DefaultTarget))
 	if err != nil {
 		panic(fmt.Sprintf("default url [%s] parse error, detail:[%s]", defaultUrl, err))
@@ -33,12 +39,19 @@ func NewSapBlend(lis net.Listener, cfg cc.Cfg) *SapBlend {
 	return b
 }
 
-func (s *SapBlend) Serve() {
+func (s *SapBlend) Serve(ctx context.Context) {
 	log.Printf("superlcx work in blend mode!")
 	tr := http.DefaultTransport
+	go func() {
+		<-ctx.Done()
+		s.lis.Close()
+	}()
 	for {
 		conn, err := s.lis.Accept()
 		if err != nil {
+			if strings.Contains(err.Error(), "closed network connection") {
+				return
+			}
 			log.Printf("[x] listener accept error, detail:[%s]", err)
 		}
 		go func() {
