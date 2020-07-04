@@ -8,27 +8,25 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"plugin"
-	"strings"
 
 	"superlcx/cc"
-	"superlcx/middlewares/stdout"
 )
 
 type SapProxy struct {
 	defaultUrl *url.URL
 	lis        net.Listener
-	middleware
+	*middleware
 }
 
 // NewSapProxy 构建一个SapProxy
-func NewSapProxy(cfg cc.Cfg) *SapProxy {
+func NewSapProxy() *SapProxy {
 	// start listen
-	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", cfg.ListenPort))
+	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", cc.Config.ListenPort))
 	if err != nil {
 		panic(err)
 	}
-	u, err := url.Parse(fmt.Sprintf("http://%s", cfg.DefaultTarget))
+	log.Printf("[+] superlcx listen at [%d]", cc.Config.ListenPort)
+	u, err := url.Parse(fmt.Sprintf("http://%s", cc.Config.DefaultTarget))
 	if err != nil {
 		panic(err)
 	}
@@ -36,8 +34,8 @@ func NewSapProxy(cfg cc.Cfg) *SapProxy {
 	p := &SapProxy{
 		defaultUrl: u,
 		lis:        lis,
+		middleware: newMiddleware(cc.Config.Middleware),
 	}
-	p.Register(cfg.Middleware)
 	return p
 }
 
@@ -81,35 +79,4 @@ func (s *SapProxy) Serve(ctx context.Context) {
 	go http.Serve(s.lis, proxy)
 	<-ctx.Done()
 	s.lis.Close()
-}
-
-func (s *SapProxy) Register(middleware string) {
-	if middleware != "" {
-		ms := strings.Split(middleware, ",")
-		for _, m := range ms {
-			switch m {
-			case "stdout":
-				s.RegisterMiddleware(stdout.HandleRequest, stdout.HandleResponse)
-			default:
-				reqH, respH := find(m)
-				s.RegisterMiddleware(reqH, respH)
-			}
-		}
-	}
-}
-
-func find(pluginName string) (func(req *http.Request), func(resp *http.Response)) {
-	p, err := plugin.Open(pluginName)
-	if err != nil {
-		panic(err)
-	}
-	req, err := p.Lookup("HandleRequest")
-	if err != nil {
-		panic(err)
-	}
-	resp, err := p.Lookup("HandleResponse")
-	if err != nil {
-		panic(err)
-	}
-	return req.(func(req *http.Request)), resp.(func(resp *http.Response))
 }

@@ -88,13 +88,13 @@ func main() {
 	go func() {
 		switch Config.Mode {
 		case "proxy":
-			c := core.NewSapProxy(Config)
+			c := core.NewSapProxy()
 			c.Serve(ctx)
 		case "copy":
-			c := core.NewSapCopy(Config)
+			c := core.NewSapCopy()
 			c.Serve(ctx)
 		case "blend":
-			c := core.NewSapBlend(Config)
+			c := core.NewSapBlend()
 			c.Serve(ctx)
 		default:
 			flag.PrintDefaults()

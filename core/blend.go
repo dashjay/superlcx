@@ -23,19 +23,20 @@ type SapBlend struct {
 	*middleware
 }
 
-func NewSapBlend(cfg cc.Cfg) *SapBlend {
+func NewSapBlend() *SapBlend {
 	// start listen
-	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", cfg.ListenPort))
+	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", cc.Config.ListenPort))
 	if err != nil {
 		panic(err)
 	}
-	defaultUrl, err := url.Parse(fmt.Sprintf("http://%s/", cfg.DefaultTarget))
+	log.Printf("[+] superlcx listen at [%d]", cc.Config.ListenPort)
+	defaultUrl, err := url.Parse(fmt.Sprintf("http://%s/", cc.Config.DefaultTarget))
 	if err != nil {
 		panic(fmt.Sprintf("default url [%s] parse error, detail:[%s]", defaultUrl, err))
 	}
 	log.Printf("parse default url as %s", defaultUrl)
 	b := &SapBlend{lis: lis, defaultUrl: defaultUrl,
-		middleware: newMiddleware(cfg.Middleware)}
+		middleware: newMiddleware(cc.Config.Middleware)}
 	return b
 }
 
@@ -76,16 +77,20 @@ func (s *SapBlend) Serve(ctx context.Context) {
 				newReq := req.Clone(ctx)
 				organizeUrl(newReq, s.defaultUrl)
 
-				for _, reqH := range s.reqHandlers {
-					reqH(newReq)
+				if len(s.reqHandlers) > 0 {
+					for _, reqH := range s.reqHandlers {
+						reqH(newReq)
+					}
 				}
 				resp, err := tr.RoundTrip(newReq)
 				if err != nil {
 					log.Printf("[x] default transport req error, detail:[%s]", err)
 					continue
 				}
-				for _, respH := range s.respHandlers {
-					respH(resp)
+				if len(s.respHandlers) > 0 {
+					for _, respH := range s.respHandlers {
+						respH(resp)
+					}
 				}
 				resp.Write(conn)
 				cancel()

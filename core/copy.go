@@ -53,11 +53,12 @@ func (s *SapCopy) Serve(ctx context.Context) {
 	}
 }
 
-func NewSapCopy(cfg cc.Cfg) *SapCopy {
+func NewSapCopy() *SapCopy {
 	// start listen
-	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", cfg.ListenPort))
+	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", cc.Config.ListenPort))
 	if err != nil {
 		panic(err)
 	}
-	return &SapCopy{lis: lis, target: cfg.DefaultTarget}
+	log.Printf("[+] superlcx listen at [%d]", cc.Config.ListenPort)
+	return &SapCopy{lis: lis, target: cc.Config.DefaultTarget}
 }

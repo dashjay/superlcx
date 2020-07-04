@@ -9,8 +9,11 @@
 
 <div align="center">
   <a href="https://travis-ci.com/github/dashjay/superlcx"><img src="https://travis-ci.com/dashjay/superlcx.svg?branch=master" alt="Build Status"></a>
-  <a href="https://github.com/dashjay/superlcx/actions?query=workflow%3Aauto_release"><img src="https://github.com/dashjay/superlcx/workflows/auto_release/badge.svg" alt="Build Status"></a>
+  <a href="https://github.com/dashjay/superlcx/actions?query=workflow%3AAutoRelease"><img src="https://github.com/dashjay/superlcx/workflows/AutoRelease/badge.svg" alt="Release Status"></a>
+  <a href="https://github.com/dashjay/superlcx/actions?query=workflow%3ABuild"><img src="https://github.com/dashjay/superlcx/workflows/Build/badge.svg" alt="Build Status"></a>
+  <a href="https://github.com/dashjay/superlcx/actions?query=workflow%3ATest"><img src="https://github.com/dashjay/superlcx/workflows/Test/badge.svg" alt="Test Status"></a>
 </div>
+
 
 [EN](./README.md)[中文]
 

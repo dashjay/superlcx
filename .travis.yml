@@ -6,10 +6,10 @@ dist: "xenial"
 os:
   - "linux"
 go:
-  - "1.13.x"
   - "1.14.x"
 
 script:
-  - go test test/*.go -v
+  - go test test/main.go test/main_test.go -v
+  - go test test/main.go test/cheader_test.go -v
   - go vet cmd/main.go
   - go build cmd/main.go

@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"plugin"
 	"strings"
 
 	"github.com/google/uuid"
@@ -73,23 +74,41 @@ func newMiddleware(mid string) *middleware {
 			log.Printf("try load [%s] middleware.", m)
 			switch strings.TrimSpace(m) {
 			case "stdout":
-				middle.RegisterMiddleware(stdout.HandleRequest, stdout.HandleResponse)
+				middle.RegisterMiddleware(m, stdout.HandleRequest, stdout.HandleResponse)
 			case "c_header":
-				middle.RegisterMiddleware(c_header.HandleRequest, c_header.HandleResponse)
+				middle.RegisterMiddleware(m, c_header.HandleRequest, c_header.HandleResponse)
 			case "sub_filter":
-				middle.RegisterMiddleware(sub_filter.HandleRequest, sub_filter.HandleResponse)
+				middle.RegisterMiddleware(m, sub_filter.HandleRequest, sub_filter.HandleResponse)
 			case "js_lua":
-				middle.RegisterMiddleware(js_lua.HandleRequest, js_lua.HandleResponse)
+				middle.RegisterMiddleware(m, js_lua.HandleRequest, js_lua.HandleResponse)
 			default:
 				reqH, respH := find(m)
-				middle.RegisterMiddleware(reqH, respH)
+				middle.RegisterMiddleware(m, reqH, respH)
 			}
 		}
 	}
+	log.Printf("middleware sum [%d]", len(middle.respHandlers))
 	return middle
 }
 
-func (m *middleware) RegisterMiddleware(reqH func(req *http.Request), respH func(resp *http.Response)) {
+func find(pluginName string) (func(req *http.Request), func(resp *http.Response)) {
+	p, err := plugin.Open(pluginName)
+	if err != nil {
+		panic(err)
+	}
+	req, err := p.Lookup("HandleRequest")
+	if err != nil {
+		panic(err)
+	}
+	resp, err := p.Lookup("HandleResponse")
+	if err != nil {
+		panic(err)
+	}
+	return req.(func(req *http.Request)), resp.(func(resp *http.Response))
+}
+
+func (m *middleware) RegisterMiddleware(name string, reqH func(req *http.Request), respH func(resp *http.Response)) {
+	log.Printf("[√] register milldeware [%s]", name)
 	m.reqHandlers = append(m.reqHandlers, reqH)
 	m.respHandlers = append(m.respHandlers, respH)
 }

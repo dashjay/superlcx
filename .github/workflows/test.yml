@@ -7,14 +7,14 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
-    name: Build
+  test:
+    name: Test
     runs-on: ubuntu-latest
     steps:
       - name: Set up GO 1.x
         uses: actions/setup-go@v2
         with:
-          go-version: ^1.13
+          go-version: ^1.14
         id: go
 
       - name: Check out code into the Go module directory
@@ -23,5 +23,8 @@ jobs:
       - name: Get dependencies
         run: go mod download
 
-      - name: Go Test
-        run: go test test/*.go -v
+      - name: Main Test
+        run: go test test/main.go test/main_test.go -v
+
+      - name: CHeader Test
+        run: go test test/main.go test/cheader_test.go -v

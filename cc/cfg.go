@@ -35,8 +35,8 @@ func (s *SubFilter) HandleLine(line []byte) []byte {
 	return s.OldMatcher.ReplaceAll(line, []byte(s.Repl))
 }
 
-// customHeader help resp
-type customHeader struct {
+// CustomHeader help resp
+type CustomHeader struct {
 	Key   string `toml:"Key"`
 	Value string `toml:"Value"`
 }
@@ -52,7 +52,7 @@ type Cfg struct {
 	ProxyUrls map[string]proxyUrl `toml:"ProxyUrls"`
 
 	// add custom header
-	CustomHeaders map[string]customHeader `toml:"CustomHeaders"`
+	CustomHeaders map[string]CustomHeader `toml:"CustomHeaders"`
 
 	// sub_filter
 	SubFilters map[string]SubFilter `toml:"SubFilter"`
