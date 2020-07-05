@@ -13,3 +13,4 @@ script:
   - go test test/main.go test/cheader_test.go -v
   - go vet cmd/main.go
   - go build cmd/main.go
+  - sh build_all_plugins.sh
