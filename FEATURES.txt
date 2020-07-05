@@ -1,10 +1,8 @@
 EN:
-    1. add js_lua middleware.
-    2. use upx for compress binaries.
+    1. add unit test, and adjust some config, making sap stable.
 
 ZH:
-    1. 添加js_lua 中间件。
-    2. 使用 upx 对二进制程序进行压缩。
+    1. 添加单元测试，并且调整配置，使得程序更加可靠。
 
 
 

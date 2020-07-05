@@ -56,7 +56,7 @@ jobs:
       - name: Archive ${{ matrix.target }}
         uses: thedoctor0/zip-release@master
         with:
-          path: '${{ matrix.target }}'
+          path: '${{ matrix.target }} config.toml'
           filename: '${{ steps.tag.outputs.tag }}_${{ matrix.os }}_${{ matrix.arch }}.zip'
 
       - name: Compress binaries ${{ matrix.os }}
@@ -69,7 +69,7 @@ jobs:
       - name: Archive ${{ matrix.upx_target }}
         uses: thedoctor0/zip-release@master
         with:
-          path: '${{ matrix.upx_target }}'
+          path: '${{ matrix.upx_target }} config.toml'
           filename: '${{ steps.tag.outputs.tag }}_${{ matrix.os }}_${{ matrix.arch }}_upx.zip'
 
       - name: GH Release

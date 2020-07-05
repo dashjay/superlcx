@@ -1,3 +1,8 @@
+v1.0.6:
+    1. add unit test, and adjust some config, making sap stable.
+
+    1. 添加单元测试，并且调整配置，使得程序更加可靠。
+
 v1.0.5:
     1. use upx for compress binaries.
 
