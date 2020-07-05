@@ -29,5 +29,8 @@ jobs:
       - name: Go Build
         run: go build -o superlcx cmd/main.go
 
+      - name: Go Build Without Middleware
+        run: go build -tag plugin -o superlcx cmd/main.go
+
       - name: Go All Plugins
         run: sh build_all_plugins.sh

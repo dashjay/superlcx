@@ -1,4 +1,4 @@
-// +build !plugin
+// +build plugin
 
 package core
 
@@ -12,10 +12,6 @@ import (
 	"github.com/google/uuid"
 
 	"superlcx/cc"
-	"superlcx/middlewares/c_header"
-	"superlcx/middlewares/js_lua"
-	"superlcx/middlewares/stdout"
-	"superlcx/middlewares/sub_filter"
 )
 
 func organizeUrl(req *http.Request, defaultT *url.URL) {
@@ -74,19 +70,8 @@ func newMiddleware(mid string) *middleware {
 		ms := strings.Split(mid, ",")
 		for _, m := range ms {
 			log.Printf("try load [%s] middleware.", m)
-			switch strings.TrimSpace(m) {
-			case "stdout":
-				middle.RegisterMiddleware(m, stdout.HandleRequest, stdout.HandleResponse)
-			case "c_header":
-				middle.RegisterMiddleware(m, c_header.HandleRequest, c_header.HandleResponse)
-			case "sub_filter":
-				middle.RegisterMiddleware(m, sub_filter.HandleRequest, sub_filter.HandleResponse)
-			case "js_lua":
-				middle.RegisterMiddleware(m, js_lua.HandleRequest, js_lua.HandleResponse)
-			default:
-				reqH, respH := find(m)
-				middle.RegisterMiddleware(m, reqH, respH)
-			}
+			reqH, respH := find(strings.TrimSpace(m))
+			middle.RegisterMiddleware(m, reqH, respH)
 		}
 	}
 	log.Printf("middleware sum [%d]", len(middle.respHandlers))
